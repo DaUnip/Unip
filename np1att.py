@@ -1,21 +1,11 @@
-
 usuarios = {}
 usuario_logado = None
-def validar_senha(senha):
-    if len(senha) < 8:
-        return "Senha Precisa ter pelo menos 8 caracteres"
-    maiscula = False
-    numero = False
-    simbols = False
-    simbols_permitidos = "!@#$%&*,.;""':[]()_+=-" #simbolos permitidos
-    for c in senha:
-        if c.isupper():
-            maiscula = True
-        elif c.isdigit():
-            numero = True
-        elif c in simbols_permitidos:
-            simbols = True
-    
+cursos_disponiveis = {
+    "1": {"nome": "Introdução à Programação", "carga_horaria": "40h", "modulos": []},
+    "2": {"nome": "Segurança da Informação Básica", "carga_horaria": "30h", "modulos": []},
+    "3": {"nome": "LGPD na Prática", "carga_horaria": "25h", "modulos": []},
+    "4": {"nome": "Inclusão Digital para Todos", "carga_horaria": "35h", "modulos": []},
+}
 
 def mostrar_menu_principal():
     print("\n=== PLATAFORMA DE EDUCAÇÃO DIGITAL SEGURA ===")
@@ -57,6 +47,32 @@ def fazer_login():
         print("\nCredenciais inválidas!")
         return False
 
+def validar_senha(senha):
+    if len(senha) < 8:
+        return "Senha precisa ter pelo menos 8 caracteres"
+    
+    maiuscula = False
+    numero = False
+    simbolo = False
+    simbolos_permitidos = "!@#$%&*,.;\"':[]()_+=-"
+    
+    for c in senha:
+        if c.isupper():
+            maiuscula = True
+        elif c.isdigit():
+            numero = True
+        elif c in simbolos_permitidos:
+            simbolo = True
+    
+    if not maiuscula:
+        return "Adicione pelo menos uma letra maiúscula!"
+    elif not numero:
+        return "Adicione pelo menos um número!"
+    elif not simbolo:
+        return f"A senha necessita de pelo menos um  símbolo especial permitido: "
+    else:
+        return None  # Senha válida!
+
 def criar_usuario():
     print("\n--- Novo Cadastro ---")
     usuario = input("Escolha um nome de usuário: ")
@@ -65,14 +81,20 @@ def criar_usuario():
         print("Usuário já existe!")
         return
     
-    while True:
-        senha = input("Crie uma senha (mínimo 8 caracteres): ")
-        if len(senha) >= 8:
-            break
-        print("Senha muito curta!")
+    if " " in usuario:
+        print("Nome de usuário não pode conter espaços!")
+        return
     
-    usuarios[usuario] = senha
-    print("Cadastro realizado com sucesso!")
+    while True:
+        senha = input("Crie uma senha (mínimo 8 caracteres, com maiúscula, número e símbolo): ")
+        erro = validar_senha(senha)
+        
+        if erro is None:
+            usuarios[usuario] = senha
+            print("Cadastro realizado com sucesso!")
+            break
+        else:
+            print(f"Erro: {erro}")
 
 def tela_cursos():
     print("\n=== CURSOS DISPONÍVEIS ===")
@@ -81,7 +103,6 @@ def tela_cursos():
         "2. Segurança da Informação Básica (30h)",
         "3. LGPD na Prática (25h)",
         "4. Inclusão Digital para Todos (35h)",
-        
     ]
     for curso in cursos:
         print(curso)
@@ -98,12 +119,35 @@ def tela_seguranca():
 
 def tela_modulos():
     print("\n=== CADASTRAR MÓDULOS ===")
-    if usuario_logado:
-        curso = input("Digite o nome do curso: ")
-        modulo = input("Nome do novo módulo: ")
-        print(f"\nMódulo '{modulo}' cadastrado com sucesso no curso '{curso}'!")
-    else:
+    if not usuario_logado:
         print("Você precisa estar logado para acessar esta função!")
+        input("\nPressione Enter para voltar...")
+        return
+
+    # Mostra cursos existentes para escolha
+    print("\nCursos disponíveis para adicionar módulos:")
+    for id_curso, curso in cursos_disponiveis.items():
+        print(f"{id_curso}. {curso['nome']} ({curso['carga_horaria']})")
+
+    id_curso = input("\nDigite o número do curso: ")
+    if id_curso not in cursos_disponiveis:
+        print("Curso inválido!")
+        input("\nPressione Enter para voltar...")
+        return
+
+    modulo = input("Nome do novo módulo: ")
+    cursos_disponiveis[id_curso]["modulos"].append(modulo)  # Adiciona módulo ao curso
+    print(f"\nMódulo '{modulo}' cadastrado com sucesso no curso '{cursos_disponiveis[id_curso]['nome']}'!")
+    input("\nPressione Enter para voltar...")
+
+def tela_cursos():
+    print("\n=== CURSOS DISPONÍVEIS ===")
+    for id_curso, curso in cursos_disponiveis.items():
+        print(f"\n{id_curso}. {curso['nome']} ({curso['carga_horaria']})")
+        if curso["modulos"]:  # Se houver módulos cadastrados
+            print("   Módulos incluídos:")
+            for modulo in curso["modulos"]:
+                print(f"   - {modulo}")
     input("\nPressione Enter para voltar...")
 
 def main():
@@ -123,6 +167,7 @@ def main():
             break
         else:
             print("\nOpção inválida! Tente novamente.")
+
 
 if __name__ == "__main__":
     main()
